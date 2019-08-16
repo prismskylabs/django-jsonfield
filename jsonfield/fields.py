@@ -91,6 +91,8 @@ class JSONField(models.Field):
         def from_db_value(self, value, expression, connection, context):
             if value is None:
                 return None
+            if value == '':
+                return dict()
             return json.loads(value, **self.decoder_kwargs)
 
     def get_db_prep_value(self, value, connection=None, prepared=None):
