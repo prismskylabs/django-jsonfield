@@ -86,6 +86,8 @@ class JSONField(models.Field):
         def from_db_value(self, value, expression, connection):
             if value is None:
                 return None
+            if value == "":
+                value = "{}"
             return   json.loads(value, **self.decoder_kwargs)
     else:
         def from_db_value(self, value, expression, connection, context):
