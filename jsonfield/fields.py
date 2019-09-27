@@ -9,11 +9,15 @@ from django.db.models.lookups import Exact, IExact, In, Contains, IContains
 from django.db.backends.signals import connection_created
 from django.utils.translation import ugettext_lazy as _
 from django.utils import six
+import datetime
 
 from .utils import _resolve_object_path
 from .widgets import JSONWidget
 from .forms import JSONFormField
 
+def _json_converter(o):
+    if isinstance(o, datetime.datetime):
+        return o.isoformat()
 
 class JSONField(models.Field):
     """
@@ -29,6 +33,7 @@ class JSONField(models.Field):
             kwargs['default'] = kwargs.get('default', dict)
         self.encoder_kwargs = {
             'indent': kwargs.pop('indent', getattr(settings, 'JSONFIELD_INDENT', None)),
+            'default': _json_converter, # convert datetimes automatically to isoformat string
         }
         # This can be an object (probably a class), or a path which can be imported, resulting
         # in an object.
