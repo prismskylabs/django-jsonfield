@@ -24,7 +24,7 @@ def _json_decoding_hook(dct):
     for k, v in dct.items():
         if isinstance(v, str):
             os = v.strip()
-            if len(os) > 2 && os[0].isdigit():
+            if len(os) > 2 and os[0].isdigit():
                 try:
                     dct[k] = dateutil.parser.parse(os)
                 except ValueError, OverflowError:
