@@ -125,20 +125,12 @@ class JSONField(models.Field):
             # TODO: Look for date/time/datetime objects within the structure?
         return value
 
-    if django.VERSION > (2, 0):
-        def from_db_value(self, value, expression, connection):
-            if value is None:
-                return None
-            if value == "":
-                value = "{}"
-            return   json.loads(value, **self.decoder_kwargs)
-    else:
-        def from_db_value(self, value, expression, connection, context):
-            if value is None:
-                return None
-            if value == '':
-                return dict()
-            return json.loads(value, **self.decoder_kwargs)
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return None
+        if value == "":
+            value = "{}"
+        return   json.loads(value, **self.decoder_kwargs)
 
     def get_db_prep_value(self, value, connection=None, prepared=None):
         return self.get_prep_value(value)
