@@ -14,10 +14,28 @@ import datetime
 from .utils import _resolve_object_path
 from .widgets import JSONWidget
 from .forms import JSONFormField
+import dateutil.parser
 
 def _json_converter(o):
     if isinstance(o, datetime.datetime):
         return o.isoformat()
+
+def _json_decoding_hook(dct):
+    for k, v in dct.items():
+        if isinstance(v, str):
+            os = v.strip()
+            if len(os) > 2 && os[0].isdigit():
+                try:
+                    dct[k] = dateutil.parser.parse(os)
+                except ValueError, OverflowError:
+                    pass
+            if os.startswith('{') or os.startswith('['):
+                try:
+                    dct[k] = json.loads(os, object_hook=_json_decoding_hook)
+                except Exception:
+                    pass
+    return dct
+
 
 class JSONField(models.Field):
     """
@@ -41,7 +59,12 @@ class JSONField(models.Field):
         if encoder_class:
             self.encoder_kwargs['cls'] = _resolve_object_path(encoder_class)
 
-        self.decoder_kwargs = dict(kwargs.pop('decoder_kwargs', getattr(settings, 'JSONFIELD_DECODER_KWARGS', {})))
+        self.decoder_kwargs = {
+            'object_hook': _json_decoding_hook, # convert datetimes and recursive dicts automatically
+        }
+        decoder_kwargs = dict(kwargs.pop('decoder_kwargs', getattr(settings, 'JSONFIELD_DECODER_KWARGS', {})))
+        if decoder_kwargs:
+            self.decoder_kwargs.update(decoder_kwargs)
         super(JSONField, self).__init__(*args, **kwargs)
         self.validate(self.get_default(), None)
 

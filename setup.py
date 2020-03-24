@@ -25,6 +25,7 @@ setup(
     test_suite='tests.main',
     install_requires=[
         'Django>=1.9',
+        'python-dateutil>=2.6.0'
     ],
     classifiers=[
         "Development Status :: 6 - Mature",
