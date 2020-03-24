@@ -27,7 +27,7 @@ def _json_decoding_hook(dct):
             if len(os) > 2 and os[0].isdigit():
                 try:
                     dct[k] = dateutil.parser.parse(os)
-                except ValueError, OverflowError:
+                except (ValueError, OverflowError):
                     pass
             if os.startswith('{') or os.startswith('['):
                 try:
