@@ -110,6 +110,21 @@ class JSONField(models.Field):
             return 'long'
         return 'text'
 
+    def to_python(self, value):
+        if isinstance(value, str):
+            if value == "":
+                if self.null:
+                    return None
+                if self.blank:
+                    return ""
+            try:
+                value = json.loads(value, **self.decoder_kwargs)
+            except ValueError:
+                msg = self.error_messages['invalid'] % str(value)
+                raise ValidationError(msg)
+            # TODO: Look for date/time/datetime objects within the structure?
+        return value
+
     if django.VERSION > (2, 0):
         def from_db_value(self, value, expression, connection):
             if value is None:
