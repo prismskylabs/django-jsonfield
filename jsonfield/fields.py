@@ -76,12 +76,12 @@ class JSONField(models.Field):
         if encoder_class:
             self.encoder_kwargs['cls'] = _resolve_object_path(encoder_class)
 
-        decoding_hook = _json_decoding_hook
-        if kwargs.get('skip_datetime_decoding', False):
+        decoding_hook = _json_decoding_hook # convert datetimes and recursive dicts automatically
+        if kwargs.pop('skip_datetime_decoding', False):
             decoding_hook = _json_decoding_hook_nodate
         self.decoder_kwargs = {
-            'object_hook': decoding_hook, # convert datetimes and recursive dicts automatically
-        }
+            'object_hook': decoding_hook, 
+            }
         decoder_kwargs = dict(kwargs.pop('decoder_kwargs', getattr(settings, 'JSONFIELD_DECODER_KWARGS', {})))
         if decoder_kwargs:
             self.decoder_kwargs.update(decoder_kwargs)
