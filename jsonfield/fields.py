@@ -36,6 +36,23 @@ def _json_decoding_hook(dct):
                     pass
     return dct
 
+def _json_decoding_hook_nodate(dct):
+    for k, v in dct.items():
+        if isinstance(v, str):
+            os = v.strip()
+            #if len(os) > 4 and os[0].isdigit() and os.count('-') > 1 and os.count('T') == 1:
+            #    try:
+            #        dct[k] = dateutil.parser.isoparse(os)
+            #    except (ValueError, OverflowError):
+            #        pass
+            if os.startswith('{') or os.startswith('['):
+                try:
+                    dct[k] = json.loads(os, object_hook=_json_decoding_hook)
+                except Exception:
+                    pass
+    return dct
+
+
 
 class JSONField(models.Field):
     """
@@ -59,8 +76,11 @@ class JSONField(models.Field):
         if encoder_class:
             self.encoder_kwargs['cls'] = _resolve_object_path(encoder_class)
 
+        decoding_hook = _json_decoding_hook
+        if kwargs.get('skip_datetime_decoding', False):
+            decoding_hook = _json_decoding_hook_nodate
         self.decoder_kwargs = {
-            'object_hook': _json_decoding_hook, # convert datetimes and recursive dicts automatically
+            'object_hook': decoding_hook, # convert datetimes and recursive dicts automatically
         }
         decoder_kwargs = dict(kwargs.pop('decoder_kwargs', getattr(settings, 'JSONFIELD_DECODER_KWARGS', {})))
         if decoder_kwargs:
